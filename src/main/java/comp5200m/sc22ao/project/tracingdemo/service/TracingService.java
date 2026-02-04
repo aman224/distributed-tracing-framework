@@ -10,7 +10,6 @@ import comp5200m.sc22ao.project.tracingdemo.visualisation.TraceTreeOperations;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
@@ -22,8 +21,11 @@ import java.util.stream.Collectors;
 public class TracingService {
     final Logger logger = LoggerFactory.getLogger(TracingService.class);
 
-    @Autowired
-    private TracingRepository tracingRepository;
+    private final TracingRepository tracingRepository;
+
+    public TracingService(TracingRepository tracingRepository) {
+        this.tracingRepository = tracingRepository;
+    }
 
     public void saveSpans(Object spans) {
         try {
@@ -71,7 +73,8 @@ public class TracingService {
                 children.add(span);
                 parentIdToChildSpansMap.put(span.getParentId(), children);
             } else {
-                rootNode = new TraceTreeNode(span.getId(), span.getName(), span.getTags().getIstioCanonicalService(), span.getDuration());
+                rootNode = new TraceTreeNode(span.getId(), span.getName(), span.getTags().getIstioCanonicalService(),
+                        span.getDuration());
             }
         }
 
@@ -98,7 +101,8 @@ public class TracingService {
 
     public List<TraceSpan> convertObjectToSpans(Object spans) {
         ObjectMapper mapper = new ObjectMapper();
-        return mapper.convertValue(spans, new TypeReference<>(){});
+        return mapper.convertValue(spans, new TypeReference<>() {
+        });
     }
 
     public List<TraceSpan> findTraceSpans(String traceId) {

@@ -1,24 +1,29 @@
 package comp5200m.sc22ao.project.tracingdemo.controller;
 
+import comp5200m.sc22ao.project.tracingdemo.service.TraceProducer;
 import comp5200m.sc22ao.project.tracingdemo.service.TracingService;
 
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
 public class TracingController {
-    @Autowired
-    private TracingService tracingService;
+    private final TracingService tracingService;
+    private final TraceProducer traceProducer;
+
+    public TracingController(TracingService tracingService, TraceProducer traceProducer) {
+        this.tracingService = tracingService;
+        this.traceProducer = traceProducer;
+    }
 
     @PostMapping("/api/v2/spans")
     public void getSpansV2JSONMapping(@RequestBody Object request) {
-        tracingService.saveSpans(request);
+        traceProducer.sendSpan(request);
     }
 
     @PostMapping("/api/v1/spans")
     public void getSpansV1JSONMapping(@RequestBody Object request) {
-        tracingService.saveSpans(request);
+        traceProducer.sendSpan(request);
     }
 
     @GetMapping("/trace/spans")
@@ -33,7 +38,7 @@ public class TracingController {
 
     @GetMapping("/trace/{traceId}/spans/{spanId}")
     public ResponseEntity<?> getAllSpansForTrace(@PathVariable String traceId,
-                                                 @PathVariable String spanId) {
+            @PathVariable String spanId) {
         return tracingService.findSpan(traceId, spanId);
     }
 

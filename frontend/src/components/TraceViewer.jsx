@@ -8,6 +8,7 @@ const TraceViewer = () => {
     const [rootNode, setRootNode] = useState(null);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
+    const [selectedSpan, setSelectedSpan] = useState(null);
 
     useEffect(() => {
         fetchTraceTree();
@@ -46,13 +47,85 @@ const TraceViewer = () => {
             </div>
 
             <div className="gantt-chart">
-                <TreeGraph rootNode={rootNode} />
+                <TreeGraph rootNode={rootNode} onSpanClick={setSelectedSpan} />
+            </div>
+
+            {selectedSpan && (
+                <SpanDrawer
+                    span={selectedSpan}
+                    onClose={() => setSelectedSpan(null)}
+                />
+            )}
+        </div>
+    );
+};
+
+const SpanDrawer = ({ span, onClose }) => {
+    return (
+        <div className="span-drawer-overlay" onClick={onClose}>
+            <div className="span-drawer" onClick={e => e.stopPropagation()}>
+                <div className="drawer-header">
+                    <div>
+                        <h3>{span.spanName}</h3>
+                        <span className="service-tag">{span.service}</span>
+                    </div>
+                    <button className="close-button" onClick={onClose}>&times;</button>
+                </div>
+                <div className="drawer-content">
+                    <section className="detail-section">
+                        <h4>Metadata</h4>
+                        <div className="detail-grid">
+                            <div className="detail-item">
+                                <span className="detail-label">Span ID</span>
+                                <span className="detail-value">{span.spanId}</span>
+                            </div>
+                            <div className="detail-item">
+                                <span className="detail-label">Start Time</span>
+                                <span className="detail-value">{new Date(span.timestamp / 1000).toLocaleString()}</span>
+                            </div>
+                            <div className="detail-item">
+                                <span className="detail-label">Duration</span>
+                                <span className="detail-value">{(span.duration / 1000).toFixed(2)} ms</span>
+                            </div>
+                        </div>
+                    </section>
+
+                    {span.tags && Object.keys(span.tags).length > 0 && (
+                        <section className="detail-section">
+                            <h4>Tags</h4>
+                            <div className="tag-list">
+                                {Object.entries(span.tags).map(([key, value]) => (
+                                    <div key={key} className="tag-item">
+                                        <div className="detail-label">{key}</div>
+                                        <div className="detail-value">{value}</div>
+                                    </div>
+                                ))}
+                            </div>
+                        </section>
+                    )}
+
+                    {span.logs && span.logs.length > 0 && (
+                        <section className="detail-section">
+                            <h4>Logs</h4>
+                            <div className="log-list">
+                                {span.logs.map((log, i) => (
+                                    <div key={i} className="log-item">
+                                        <div className="log-time">
+                                            +{((log.timestamp - span.timestamp) / 1000).toFixed(3)} ms
+                                        </div>
+                                        <div className="log-event">{log.event}</div>
+                                    </div>
+                                ))}
+                            </div>
+                        </section>
+                    )}
+                </div>
             </div>
         </div>
     );
 };
 
-const TreeGraph = ({ rootNode }) => {
+const TreeGraph = ({ rootNode, onSpanClick }) => {
     const getEndTime = (node) => {
         let end = node.timestamp + node.duration;
         if (node.children) {
@@ -75,7 +148,7 @@ const TreeGraph = ({ rootNode }) => {
 
         return (
             <div key={node.spanId} className="tree-row-wrapper">
-                <div className="span-row">
+                <div className="span-row" onClick={() => onSpanClick(node)}>
                     <div className="span-label" style={{ paddingLeft: `${depth * 20 + 16}px` }}>
                         <span className="service-name">{node.service}</span>
                         <span className="span-name">: {node.spanName}</span>
@@ -92,16 +165,8 @@ const TreeGraph = ({ rootNode }) => {
                         >
 
                             <span
-                                className="span-info"
-                                style={{
-                                    left: (offsetPercent + widthPercent) > 90 ? (offsetPercent < 10 ? '0' : 'auto') : '100%',
-                                    right: (offsetPercent + widthPercent) > 90 ? (offsetPercent < 10 ? 'auto' : '100%') : 'auto',
-                                    marginLeft: (offsetPercent + widthPercent) > 90 ? (offsetPercent < 10 ? '0' : '0') : '5px',
-                                    marginRight: (offsetPercent + widthPercent) > 90 ? (offsetPercent < 10 ? '0' : '5px') : '0',
-                                    paddingLeft: (offsetPercent + widthPercent) > 90 && offsetPercent < 10 ? '8px' : '0',
-                                    color: (offsetPercent + widthPercent) > 90 && offsetPercent < 10 ? 'var(--md-sys-color-on-primary)' : 'var(--md-sys-color-on-surface)',
-                                    textAlign: (offsetPercent + widthPercent) > 90 ? (offsetPercent < 10 ? 'left' : 'right') : 'left'
-                                }}
+                                className={`span-info ${widthPercent < 15 ? 'outside' : 'inside'}`}
+                                title={`Duration: ${(node.duration / 1000).toFixed(2)}ms`}
                             >
                                 {(node.duration / 1000).toFixed(1)} ms
                             </span>

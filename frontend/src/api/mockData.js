@@ -25,7 +25,7 @@ const createCheckoutTrace = (index, offsetMinutes) => {
     const getSpanId = () => generateId('span', index, spanCounter++);
     let startTime = BASE_TIME + (offsetMinutes * 60000000);
     const spans = [];
-    const addSpan = (service, name, durationInfo, parentId = null) => {
+    const addSpan = (service, spanName, durationInfo, parentId = null) => {
         const spanId = getSpanId();
         const duration = durationInfo.base + (index * 100);
         const span = {
@@ -33,9 +33,19 @@ const createCheckoutTrace = (index, offsetMinutes) => {
             spanId,
             parentSpanId: parentId,
             service,
-            name,
+            spanName,
             timestamp: startTime,
-            duration: Math.floor(duration)
+            duration: Math.floor(duration),
+            tags: {
+                'http.method': spanName.startsWith('POST') ? 'POST' : 'GET',
+                'http.status_code': '200',
+                'service.version': '1.2.3',
+                'component': service === 'redis-cache' ? 'redis' : 'web-framework'
+            },
+            logs: [
+                { timestamp: startTime + 10000, event: 'request_started' },
+                { timestamp: startTime + duration / 2, event: 'processing_data' }
+            ]
         };
         spans.push(span);
         return spanId;
@@ -72,16 +82,21 @@ const createBatchAnalyticsTrace = (index, offsetMinutes) => {
     const getSpanId = () => generateId('span-batch', index, spanCounter++);
     let startTime = BASE_TIME + (offsetMinutes * 60000000);
     const spans = [];
-    const addSpan = (service, name, duration, parentId = null, startOffset = 0) => {
+    const addSpan = (service, spanName, duration, parentId = null, startOffset = 0) => {
         const spanId = getSpanId();
         const span = {
             traceId,
             spanId,
             parentSpanId: parentId,
             service,
-            name,
+            spanName,
             timestamp: startTime + startOffset,
-            duration: Math.floor(duration)
+            duration: Math.floor(duration),
+            tags: {
+                'db.system': 'postgresql',
+                'job.id': 'batch-789'
+            },
+            logs: []
         };
         spans.push(span);
         return spanId;
@@ -109,16 +124,20 @@ function createRideShareTrace(index, offsetMinutes) {
     const getSpanId = () => generateId('span-ride', index, spanCounter++);
     let startTime = BASE_TIME + (offsetMinutes * 60000000);
     const spans = [];
-    const addSpan = (service, name, duration, parentId = null, startOffset = 0) => {
+    const addSpan = (service, spanName, duration, parentId = null, startOffset = 0) => {
         const spanId = getSpanId();
         const span = {
             traceId,
             spanId,
             parentSpanId: parentId,
             service,
-            name,
+            spanName,
             timestamp: startTime + startOffset,
-            duration: Math.floor(duration)
+            duration: Math.floor(duration),
+            tags: {
+                'trip.type': 'standard',
+                'region': 'us-east'
+            }
         };
         spans.push(span);
         return spanId;

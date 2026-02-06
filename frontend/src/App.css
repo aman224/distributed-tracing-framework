@@ -215,6 +215,7 @@ body {
   cursor: pointer;
   transition: background-color 0.2s;
   border: 1px solid var(--md-sys-color-outline-variant);
+  word-break: break-word;
 }
 
 .trace-item:hover {
@@ -230,7 +231,7 @@ body {
 .gantt-chart {
   background-color: var(--md-sys-color-surface-container-low);
   border-radius: var(--md-sys-shape-corner-large);
-  padding: 0;
+  padding: 0 0 16px 0;
   border: 1px solid var(--md-sys-color-outline-variant);
   overflow: hidden;
 }
@@ -250,7 +251,7 @@ body {
 }
 
 .span-label {
-  flex: 0 0 300px;
+  flex: 0 0 350px;
   min-width: 0;
   font-size: 13px;
   color: var(--md-sys-color-on-surface);
@@ -338,6 +339,11 @@ body {
   color: var(--md-sys-color-on-surface);
 }
 
+.span-info.outside-left {
+  right: 100%;
+  color: var(--md-sys-color-on-surface);
+}
+
 .span-info.inside {
   right: 0;
   color: #FFFFFF;
@@ -381,18 +387,18 @@ body {
   }
 
   .tree-graph {
-    min-width: 650px;
+    min-width: 500px;
   }
 
   .span-label {
-    flex: 0 0 200px;
+    flex: 0 0 140px;
     padding: 0 12px;
     font-size: 12px;
   }
 
   .span-bar-container {
-    margin-left: 8px;
-    margin-right: 8px;
+    margin-left: 4px;
+    margin-right: 4px;
   }
 
   .trace-item {

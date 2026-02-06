@@ -50,7 +50,7 @@ const createCheckoutTrace = (index, offsetMinutes) => {
         spans.push(span);
         return spanId;
     };
-    const rootId = addSpan('api-gateway', 'POST /checkout', { base: 1200000 });
+    const rootId = addSpan('api-gateway', 'POST /checkout', { base: 2000000 });
     startTime += 50000;
     const authId = addSpan('auth-service', 'validate-token', { base: 150000 }, rootId);
     startTime += 20000;

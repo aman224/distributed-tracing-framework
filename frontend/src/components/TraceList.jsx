@@ -22,13 +22,14 @@ const TraceList = () => {
                     uniqueTraces[span.traceId] = {
                         traceId: span.traceId,
                         timestamp: span.timestamp,
-                        rootSpanName: span.name,
+                        rootSpanName: span.spanName || span.name,
                         spansCount: 0
                     };
                 }
                 uniqueTraces[span.traceId].spansCount++;
                 if (span.timestamp < uniqueTraces[span.traceId].timestamp) {
                     uniqueTraces[span.traceId].timestamp = span.timestamp;
+                    uniqueTraces[span.traceId].rootSpanName = span.spanName || span.name;
                 }
             });
 
@@ -55,6 +56,7 @@ const TraceList = () => {
                         <li key={trace.traceId} className="trace-item">
                             <Link to={`/trace/${trace.traceId}`}>
                                 <strong>Trace ID:</strong> {trace.traceId}<br />
+                                <strong>Root Span:</strong> {trace.rootSpanName}<br />
                                 <small>Started: {new Date(trace.timestamp / 1000).toLocaleString()}</small><br />
                                 <small>Spans: {trace.spansCount}</small>
                             </Link>

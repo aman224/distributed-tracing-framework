@@ -30,6 +30,20 @@ const TraceViewer = () => {
     if (error) return <div>Error: {error}</div>;
     if (!rootNode) return <div>No trace data found.</div>;
 
+    const getEndTime = (node) => {
+        let end = node.timestamp + node.duration;
+        if (node.children) {
+            node.children.forEach(child => {
+                end = Math.max(end, getEndTime(child));
+            });
+        }
+        return end;
+    };
+
+    const rootTimestamp = rootNode.timestamp;
+    const endTime = getEndTime(rootNode);
+    const totalDuration = Math.max(rootNode.duration, endTime - rootTimestamp);
+
     return (
         <div className="trace-viewer">
             <Link to="/">&larr; Back to Traces</Link>
@@ -39,7 +53,7 @@ const TraceViewer = () => {
                     <strong>Root Service:</strong> {rootNode.service}<br />
                 </div>
                 <div>
-                    <strong>Total Duration:</strong> {rootNode.duration / 1000} ms <br />
+                    <strong>Total Duration:</strong> {(totalDuration / 1000).toFixed(2)} ms <br />
                 </div>
                 <div>
                     <strong>Start:</strong> {new Date(rootNode.timestamp / 1000).toLocaleString()}
@@ -47,7 +61,7 @@ const TraceViewer = () => {
             </div>
 
             <div className="gantt-chart">
-                <TreeGraph rootNode={rootNode} onSpanClick={setSelectedSpan} />
+                <TreeGraph rootNode={rootNode} totalDuration={totalDuration} onSpanClick={setSelectedSpan} />
             </div>
 
             {selectedSpan && (
@@ -125,20 +139,8 @@ const SpanDrawer = ({ span, onClose }) => {
     );
 };
 
-const TreeGraph = ({ rootNode, onSpanClick }) => {
-    const getEndTime = (node) => {
-        let end = node.timestamp + node.duration;
-        if (node.children) {
-            node.children.forEach(child => {
-                end = Math.max(end, getEndTime(child));
-            });
-        }
-        return end;
-    };
-
+const TreeGraph = ({ rootNode, totalDuration, onSpanClick }) => {
     const rootTimestamp = rootNode.timestamp;
-    const endTime = getEndTime(rootNode);
-    const totalDuration = Math.max(rootNode.duration, endTime - rootTimestamp);
 
     const renderNode = (node, depth) => {
         const relativeStart = Math.max(0, node.timestamp - rootTimestamp);
@@ -149,7 +151,11 @@ const TreeGraph = ({ rootNode, onSpanClick }) => {
         return (
             <div key={node.spanId} className="tree-row-wrapper">
                 <div className="span-row" onClick={() => onSpanClick(node)}>
-                    <div className="span-label" style={{ paddingLeft: `${depth * 20 + 16}px` }}>
+                    <div
+                        className="span-label"
+                        style={{ paddingLeft: `${depth * 20 + 16}px` }}
+                        title={`${node.service} : ${node.spanName}`}
+                    >
                         <span className="service-name">{node.service}</span>
                         <span className="span-name">: {node.spanName}</span>
                     </div>
@@ -165,7 +171,10 @@ const TreeGraph = ({ rootNode, onSpanClick }) => {
                         >
 
                             <span
-                                className={`span-info ${widthPercent < 15 ? 'outside' : 'inside'}`}
+                                className={`span-info ${widthPercent >= 15
+                                    ? 'inside'
+                                    : (offsetPercent + widthPercent > 85 ? 'outside-left' : 'outside')
+                                    }`}
                                 title={`Duration: ${(node.duration / 1000).toFixed(2)}ms`}
                             >
                                 {(node.duration / 1000).toFixed(1)} ms

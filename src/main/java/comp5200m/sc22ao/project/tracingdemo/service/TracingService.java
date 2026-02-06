@@ -74,7 +74,7 @@ public class TracingService {
                 parentIdToChildSpansMap.put(span.getParentId(), children);
             } else {
                 rootNode = new TraceTreeNode(span.getId(), span.getName(), span.getTags().getIstioCanonicalService(),
-                        span.getDuration());
+                        span.getDuration(), span.getTimestamp());
             }
         }
 
@@ -92,6 +92,39 @@ public class TracingService {
         }
 
         return new ResponseEntity<>("Trace Not Found", HttpStatus.NOT_FOUND);
+    }
+
+    public TraceTreeNode generateTraceTree(String traceId) {
+        List<TraceSpan> traceSpans = findTraceSpans(traceId);
+
+        Map<String, List<TraceSpan>> parentIdToChildSpansMap = new HashMap<>();
+        TraceTreeNode rootNode = null;
+
+        for (TraceSpan span : traceSpans) {
+            if (span.getParentId() != null) {
+                List<TraceSpan> children = parentIdToChildSpansMap.get(span.getParentId());
+                if (children == null) {
+                    children = new ArrayList<>();
+                }
+                children.add(span);
+                parentIdToChildSpansMap.put(span.getParentId(), children);
+            } else {
+                rootNode = new TraceTreeNode(span.getId(), span.getName(), span.getTags().getIstioCanonicalService(),
+                        span.getDuration(), span.getTimestamp());
+            }
+        }
+
+        if (rootNode != null) {
+            TraceTreeOperations operations = new TraceTreeOperations(
+                    parentIdToChildSpansMap,
+                    rootNode.getDuration(),
+                    traceSpans);
+
+            operations.populateTree(rootNode);
+            return rootNode;
+        }
+
+        return null;
     }
 
     public ResponseEntity<?> generateCompleteTraceReport() {

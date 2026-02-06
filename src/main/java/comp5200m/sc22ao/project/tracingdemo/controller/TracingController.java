@@ -46,4 +46,14 @@ public class TracingController {
     public ResponseEntity<?> generateTraceReport(@PathVariable String traceId) {
         return tracingService.generateTraceReport(traceId);
     }
+
+    @GetMapping("/api/traces/{traceId}/tree")
+    public ResponseEntity<?> getTraceTree(@PathVariable String traceId) {
+        return ResponseEntity.ok(tracingService.generateTraceTree(traceId));
+    }
+
+    @GetMapping("/api/traces")
+    public ResponseEntity<?> getTraces() {
+        return tracingService.generateCompleteTraceReport();
+    }
 }

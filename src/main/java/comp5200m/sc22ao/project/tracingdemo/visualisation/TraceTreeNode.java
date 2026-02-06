@@ -20,11 +20,22 @@ public class TraceTreeNode {
         this.spanName = spanName;
     }
 
-    public TraceTreeNode(String spanId, String spanName, String service, Long duration) {
+    public TraceTreeNode(String spanId, String spanName, String service, Long duration, Long timestamp) {
         this.spanId = spanId;
         this.spanName = spanName;
         this.service = service;
         this.duration = duration;
+        this.timestamp = timestamp;
+    }
+
+    private Long timestamp;
+
+    public Long getTimestamp() {
+        return timestamp;
+    }
+
+    public void setTimestamp(Long timestamp) {
+        this.timestamp = timestamp;
     }
 
     public TraceTreeNode(String spanId, List<TraceTreeNode> children) {

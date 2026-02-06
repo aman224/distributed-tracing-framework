@@ -1,6 +1,5 @@
 package comp5200m.sc22ao.project.tracingdemo.visualisation;
 
-
 import comp5200m.sc22ao.project.tracingdemo.model.TraceSpan;
 
 import java.util.*;
@@ -10,7 +9,8 @@ public class TraceTreeOperations {
     private final Map<String, List<TraceSpan>> parentToChildrenSpans;
     private final List<TraceSpan> spans;
 
-    public TraceTreeOperations(Map<String, List<TraceSpan>> parentToChildrenSpans, Long duration, List<TraceSpan> spans) {
+    public TraceTreeOperations(Map<String, List<TraceSpan>> parentToChildrenSpans, Long duration,
+            List<TraceSpan> spans) {
         this.durationNormFactor = findDurationNormFactor(duration);
         this.parentToChildrenSpans = parentToChildrenSpans;
         this.spans = spans;
@@ -21,7 +21,7 @@ public class TraceTreeOperations {
             List<TraceSpan> childSpans = parentToChildrenSpans.get(node.getSpanId());
             for (TraceSpan span : childSpans) {
                 TraceTreeNode childNode = new TraceTreeNode(span.getId(), span.getName(),
-                        span.getTags().getIstioCanonicalService(), span.getDuration());
+                        span.getTags().getIstioCanonicalService(), span.getDuration(), span.getTimestamp());
                 node.getChildren().add(childNode);
                 populateTree(childNode);
             }
@@ -72,7 +72,8 @@ public class TraceTreeOperations {
     }
 
     public TraceTreeNode initialiseTraceTreeNode(TraceSpan span) {
-        return new TraceTreeNode(span.getId(), span.getName(), span.getTags().getIstioCanonicalService(), span.getDuration());
+        return new TraceTreeNode(span.getId(), span.getName(), span.getTags().getIstioCanonicalService(),
+                span.getDuration(), span.getTimestamp());
     }
 
     public Set<String> dfsGetAllNodes(TraceTreeNode node) {

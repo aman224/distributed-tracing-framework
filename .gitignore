@@ -53,3 +53,8 @@ build/
 ### Development tools and logs ###
 init_tracer.sh
 logs/*
+
+data
+.github
+
+frontend
